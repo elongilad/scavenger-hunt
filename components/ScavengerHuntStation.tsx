@@ -1,21 +1,30 @@
 "use client"
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Camera } from 'lucide-react';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 
+interface Station {
+  id: string;
+  name: string;
+  nextClue: string;
+  videoUrl: string;
+  correctPassword: string;
+  nextStation: string;
+}
+
 const ScavengerHuntStation = () => {
   const [password, setPassword] = useState('');
   const [showVideo, setShowVideo] = useState(false);
   const [error, setError] = useState('');
-  const [stationData, setStationData] = useState<any>(null);
-  const [currentStation, setCurrentStation] = useState<any>(null);
+  const [stationData, setStationData] = useState<Station | null>(null);
+  const [currentStation, setCurrentStation] = useState<Station | null>(null);
 
-  // Station data - customize these for your hunt
-  const stations = {
+  const stations: Record<string, Station> = {
     'STATION1': {
       id: 'STATION1',
       name: 'Training Academy',
@@ -51,7 +60,6 @@ const ScavengerHuntStation = () => {
     }
   };
 
-  // Simulate scanning a QR code
   const handleScan = () => {
     const station = stations['STATION1'];
     if (station) {
@@ -106,11 +114,12 @@ const ScavengerHuntStation = () => {
 
           {showVideo && stationData && (
             <div className="mt-4 space-y-4">
-              <div className="aspect-video bg-slate-700 rounded-lg overflow-hidden">
-                <img 
-                  src={stationData.videoUrl} 
+              <div className="aspect-video bg-slate-700 rounded-lg overflow-hidden relative">
+                <Image 
+                  src={stationData.videoUrl}
                   alt="Mission Briefing"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
               <div className="p-4 bg-slate-700 rounded-lg border border-slate-600">
