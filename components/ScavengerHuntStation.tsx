@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Camera } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -45,6 +45,21 @@ const ScavengerHuntStation = () => {
     }
   };
 
+  const onScanSuccess = useCallback((decodedText: string) => {
+    const station = stations[decodedText];
+    if (station) {
+      setCurrentStation(station);
+      setShowScanner(false);
+      setError('');
+    } else {
+      setError('Invalid QR code! Try scanning again.');
+    }
+  }, [stations]);
+
+  const onScanError = (errorMessage: string) => {
+    console.warn(errorMessage);
+  };
+
   useEffect(() => {
     if (showScanner) {
       const scanner = new Html5QrcodeScanner(
@@ -63,7 +78,7 @@ const ScavengerHuntStation = () => {
         scanner.clear().catch(console.error);
       };
     }
-  }, [showScanner]);
+  }, [showScanner, onScanSuccess]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,21 +95,6 @@ const ScavengerHuntStation = () => {
       setError('Incorrect password. Try again!');
       setShowVideo(false);
     }
-  };
-
-  const onScanSuccess = (decodedText: string) => {
-    const station = stations[decodedText];
-    if (station) {
-      setCurrentStation(station);
-      setShowScanner(false);
-      setError('');
-    } else {
-      setError('Invalid QR code! Try scanning again.');
-    }
-  };
-
-  const onScanError = (error: any) => {
-    console.warn(error);
   };
 
   return (
