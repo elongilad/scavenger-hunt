@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Camera } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -23,6 +24,7 @@ const ScavengerHuntStation = () => {
   const [error, setError] = useState('');
   const [stationData, setStationData] = useState<Station | null>(null);
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   const stations: Record<string, Station> = {
     'STATION1': {
@@ -43,6 +45,26 @@ const ScavengerHuntStation = () => {
     }
   };
 
+  useEffect(() => {
+    if (showScanner) {
+      const scanner = new Html5QrcodeScanner(
+        "qr-reader", 
+        { 
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1
+        },
+        false
+      );
+
+      scanner.render(onScanSuccess, onScanError);
+
+      return () => {
+        scanner.clear().catch(console.error);
+      };
+    }
+  }, [showScanner]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentStation) {
@@ -60,12 +82,19 @@ const ScavengerHuntStation = () => {
     }
   };
 
-  const handleScan = () => {
-    const station = stations['STATION1'];
+  const onScanSuccess = (decodedText: string) => {
+    const station = stations[decodedText];
     if (station) {
       setCurrentStation(station);
+      setShowScanner(false);
       setError('');
+    } else {
+      setError('Invalid QR code! Try scanning again.');
     }
+  };
+
+  const onScanError = (error: any) => {
+    console.warn(error);
   };
 
   return (
@@ -75,14 +104,26 @@ const ScavengerHuntStation = () => {
           🕵️‍♂️ TOP SECRET: Operation Birthday Cake 🎂
         </CardHeader>
         <CardContent className="space-y-4">
-          {!currentStation && (
+          {!currentStation && !showScanner && (
             <div className="text-center">
               <Button 
-                onClick={handleScan}
+                onClick={() => setShowScanner(true)}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Camera className="mr-2 h-4 w-4" />
                 Scan Security Clearance
+              </Button>
+            </div>
+          )}
+
+          {showScanner && (
+            <div className="mb-4">
+              <div id="qr-reader" className="w-full"></div>
+              <Button 
+                onClick={() => setShowScanner(false)}
+                className="mt-2 w-full bg-red-600 hover:bg-red-700"
+              >
+                Cancel Scanning
               </Button>
             </div>
           )}
