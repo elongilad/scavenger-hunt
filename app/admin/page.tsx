@@ -24,7 +24,7 @@ interface Station {
 }
 
 const AdminInterface = () => {
-  const [stations, setStations] = useState<Station[]>([]);
+  const [stations, setStations] = useState<Record<string, Station>>({});
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -41,7 +41,17 @@ const AdminInterface = () => {
         .order('created_at');
 
       if (error) throw error;
-      setStations(data || []);
+
+      const stationsRecord = (data || []).reduce((acc, station) => {
+        acc[station.id] = {
+          ...station,
+          videoUrl: station.video_url,
+          routes: station.routes || {}
+        };
+        return acc;
+      }, {} as Record<string, Station>);
+
+      setStations(stationsRecord);
     } catch (error) {
       setError('Error loading stations');
       console.error(error);
@@ -50,7 +60,7 @@ const AdminInterface = () => {
 
   const handleAddStation = () => {
     const newStation: Station = {
-      id: `STATION${stations.length + 1}`,
+      id: `STATION${Object.keys(stations).length + 1}`,
       name: '',
       videoUrl: '',
       routes: {}
@@ -133,13 +143,12 @@ const AdminInterface = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Stations List */}
           <Card>
             <CardHeader>Stations</CardHeader>
             <CardContent>
               <Button onClick={handleAddStation}>Add New Station</Button>
               <div className="mt-4 space-y-2">
-                {stations.map(station => (
+                {Object.values(stations).map(station => (
                   <div 
                     key={station.id}
                     className="p-2 border rounded hover:bg-gray-100 flex justify-between items-center"
@@ -163,7 +172,6 @@ const AdminInterface = () => {
             </CardContent>
           </Card>
 
-          {/* Station Editor */}
           {currentStation && (
             <Card>
               <CardHeader>Edit Station</CardHeader>
@@ -253,12 +261,10 @@ const AdminInterface = () => {
             </Card>
           )}
 
-          {/* Route Visualization */}
           <div className="lg:col-span-2">
             <RouteVisualizer stations={stations} />
           </div>
           
-          {/* QR Code Generator */}
           {currentStation && (
             <div className="lg:col-span-2">
               <QRCodeGenerator stationId={currentStation.id} />
