@@ -117,16 +117,18 @@ const AdminInterface = () => {
   const handleAddRoute = () => {
     if (currentStation) {
       const updatedStation = { ...currentStation };
-      const routeKey = ''; // Empty by default so you can enter your own
-      updatedStation.routes[routeKey] = {
-        nextStation: '',
-        password: '',
-        nextClue: ''
+      const newRouteKey = ''; // Empty string so user can input their own station ID
+      updatedStation.routes = {
+        ...updatedStation.routes,
+        [newRouteKey]: {
+          nextStation: '',
+          password: '',
+          nextClue: ''
+        }
       };
       setCurrentStation(updatedStation);
     }
   };
-
   return (
     <AuthWrapper>
       <div className="container mx-auto p-4">
@@ -216,45 +218,51 @@ const AdminInterface = () => {
                     <h3 className="font-medium mb-2">Routes</h3>
                     <Button onClick={handleAddRoute} className="mb-2">Add Route</Button>
                     
-                    {Object.entries(currentStation.routes).map(([fromStation, route]) => (
-                      <div key={fromStation} className="p-2 border rounded mb-2">
-                        <Input 
-                          placeholder="From Station"
-                          value={fromStation}
-                          className="mb-2"
-                          readOnly
-                        />
-                        <Input 
-                          placeholder="Next Station"
-                          value={route.nextStation}
-                          className="mb-2"
-                          onChange={(e) => {
-                            const updatedStation = { ...currentStation };
-                            updatedStation.routes[fromStation].nextStation = e.target.value;
-                            setCurrentStation(updatedStation);
-                          }}
-                        />
-                        <Input 
-                          placeholder="Password"
-                          value={route.password}
-                          className="mb-2"
-                          onChange={(e) => {
-                            const updatedStation = { ...currentStation };
-                            updatedStation.routes[fromStation].password = e.target.value;
-                            setCurrentStation(updatedStation);
-                          }}
-                        />
-                        <Input 
-                          placeholder="Next Clue"
-                          value={route.nextClue}
-                          onChange={(e) => {
-                            const updatedStation = { ...currentStation };
-                            updatedStation.routes[fromStation].nextClue = e.target.value;
-                            setCurrentStation(updatedStation);
-                          }}
-                        />
-                      </div>
-                    ))}
+                    {Object.entries(currentStation.routes).map(([fromStation, route], index) => (
+  <div key={index} className="p-2 border rounded mb-2">
+    <Input 
+      placeholder="From Station"
+      value={fromStation}
+      className="mb-2"
+      onChange={(e) => {
+        const updatedStation = { ...currentStation };
+        const routeData = updatedStation.routes[fromStation];
+        delete updatedStation.routes[fromStation];
+        updatedStation.routes[e.target.value] = routeData;
+        setCurrentStation(updatedStation);
+      }}
+    />
+    <Input 
+      placeholder="Next Station"
+      value={route.nextStation}
+      className="mb-2"
+      onChange={(e) => {
+        const updatedStation = { ...currentStation };
+        updatedStation.routes[fromStation].nextStation = e.target.value;
+        setCurrentStation(updatedStation);
+      }}
+    />
+    <Input 
+      placeholder="Password"
+      value={route.password}
+      className="mb-2"
+      onChange={(e) => {
+        const updatedStation = { ...currentStation };
+        updatedStation.routes[fromStation].password = e.target.value;
+        setCurrentStation(updatedStation);
+      }}
+    />
+    <Input 
+      placeholder="Next Clue"
+      value={route.nextClue}
+      onChange={(e) => {
+        const updatedStation = { ...currentStation };
+        updatedStation.routes[fromStation].nextClue = e.target.value;
+        setCurrentStation(updatedStation);
+      }}
+    />
+  </div>
+))}
                   </div>
 
                   <Button onClick={handleSaveStation}>Save Station</Button>
