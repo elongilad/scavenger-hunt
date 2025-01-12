@@ -8,14 +8,19 @@ import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
+import { supabase } from '@/lib/supabase';
+
+interface StationRoute {
+  nextStation: string;
+  password: string;
+  nextClue: string;
+}
 
 interface Station {
   id: string;
   name: string;
-  nextClue: string;
   videoUrl: string;
-  correctPassword: string;
-  nextStation: string;
+  routes: Record<string, StationRoute>;
 }
 
 const ScavengerHuntStation = () => {
@@ -25,25 +30,37 @@ const ScavengerHuntStation = () => {
   const [stationData, setStationData] = useState<Station | null>(null);
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [stations, setStations] = useState<Record<string, Station>>({});
+  const [loading, setLoading] = useState(true);
 
-  const stations: Record<string, Station> = {
-    'STATION1': {
-      id: 'STATION1',
-      name: 'Training Academy',
-      nextClue: "Time to test those observation skills, agents! Head to the blue bench for your next mission.",
-      videoUrl: "/api/placeholder/400/300",
-      correctPassword: "BACKPACK",
-      nextStation: "STATION2"
-    },
-    'STATION2': {
-      id: 'STATION2',
-      name: 'Surveillance Post',
-      nextClue: "Your agility training awaits at the Jungle Gym Base, agents!",
-      videoUrl: "/api/placeholder/400/300",
-      correctPassword: "BINOCULARS",
-      nextStation: "STATION3"
-    }
-  };
+  useEffect(() => {
+    const loadStations = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('stations')
+          .select('*');
+
+        if (error) throw error;
+
+        const stationsRecord = (data || []).reduce((acc: Record<string, Station>, station) => {
+          acc[station.id] = {
+            ...station,
+            videoUrl: station.video_url
+          };
+          return acc;
+        }, {});
+
+        setStations(stationsRecord);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading stations:', error);
+        setError('Error loading stations. Please try again later.');
+        setLoading(false);
+      }
+    };
+
+    loadStations();
+  }, []);
 
   const onScanSuccess = useCallback((decodedText: string) => {
     const station = stations[decodedText];
@@ -61,8 +78,10 @@ const ScavengerHuntStation = () => {
   };
 
   useEffect(() => {
+    let scanner: Html5QrcodeScanner | null = null;
+
     if (showScanner) {
-      const scanner = new Html5QrcodeScanner(
+      scanner = new Html5QrcodeScanner(
         "qr-reader", 
         { 
           fps: 10,
@@ -73,11 +92,13 @@ const ScavengerHuntStation = () => {
       );
 
       scanner.render(onScanSuccess, onScanError);
-
-      return () => {
-        scanner.clear().catch(console.error);
-      };
     }
+
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(console.error);
+      }
+    };
   }, [showScanner, onScanSuccess]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -87,8 +108,13 @@ const ScavengerHuntStation = () => {
       return;
     }
 
-    if (password.toUpperCase() === currentStation.correctPassword) {
-      setStationData(currentStation);
+    const matchingRoute = Object.values(currentStation.routes).find(
+      route => route.password.toUpperCase() === password.toUpperCase()
+    );
+
+    if (matchingRoute) {
+      const nextStation = stations[matchingRoute.nextStation];
+      setStationData(nextStation);
       setShowVideo(true);
       setError('');
     } else {
@@ -96,6 +122,18 @@ const ScavengerHuntStation = () => {
       setShowVideo(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-md mx-auto p-4">
+        <Card className="bg-slate-800 text-white">
+          <CardContent className="p-8 text-center">
+            Loading mission data...
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto p-4">
@@ -165,7 +203,9 @@ const ScavengerHuntStation = () => {
               </div>
               <div className="p-4 bg-slate-700 rounded-lg border border-slate-600">
                 <h3 className="font-bold mb-2 text-blue-400">Mission Update:</h3>
-                <p className="text-white">{stationData.nextClue}</p>
+                <p className="text-white">
+                  {Object.values(stationData.routes)[0]?.nextClue || "Mission Complete!"}
+                </p>
               </div>
             </div>
           )}

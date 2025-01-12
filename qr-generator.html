@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .qr-container { margin: 20px; }
+        .station-info { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="qr-container">
+        <div class="station-info">
+            <h3>Station 1: Training Academy</h3>
+            <p>Password for next station: BACKPACK</p>
+        </div>
+        <div id="qrcode1"></div>
+    </div>
+
+    <div class="qr-container">
+        <div class="station-info">
+            <h3>Station 2: Surveillance Post</h3>
+            <p>Password for next station: BINOCULARS</p>
+        </div>
+        <div id="qrcode2"></div>
+    </div>
+
+    <script>
+        new QRCode(document.getElementById("qrcode1"), "STATION1");
+        new QRCode(document.getElementById("qrcode2"), "STATION2");
+    </script>
+</body>
+</html>
