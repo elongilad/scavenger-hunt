@@ -60,13 +60,14 @@ const AdminInterface = () => {
 
   const handleAddStation = () => {
     const newStation: Station = {
-      id: `STATION${Object.keys(stations).length + 1}`,
+      id: '', // Empty by default so you can enter your own
       name: '',
       videoUrl: '',
       routes: {}
     };
     setCurrentStation(newStation);
   };
+  
 
   const handleSaveStation = async () => {
     try {
@@ -116,7 +117,8 @@ const AdminInterface = () => {
   const handleAddRoute = () => {
     if (currentStation) {
       const updatedStation = { ...currentStation };
-      updatedStation.routes[`STATION${Object.keys(updatedStation.routes).length + 1}`] = {
+      const routeKey = ''; // Empty by default so you can enter your own
+      updatedStation.routes[routeKey] = {
         nextStation: '',
         password: '',
         nextClue: ''
