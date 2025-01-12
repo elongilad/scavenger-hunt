@@ -59,8 +59,9 @@ const AdminInterface = () => {
   const handleSaveStation = async () => {
     try {
       if (!currentStation) return;
-
-      const { data, error } = await supabase
+  
+      // Remove the unused {data, error} and just check for error
+      const { error } = await supabase
         .from('stations')
         .upsert({
           id: currentStation.id,
@@ -68,9 +69,9 @@ const AdminInterface = () => {
           video_url: currentStation.videoUrl,
           routes: currentStation.routes
         });
-
+  
       if (error) throw error;
-
+  
       setMessage('Station saved successfully!');
       loadStations(); // Reload the stations list
       
