@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Camera } from 'lucide-react';
@@ -23,6 +23,22 @@ interface Station {
   videoUrl: string;
   routes: Record<string, StationRoute>;
 }
+
+const LoadingCard = () => (
+  <div className="w-full max-w-md mx-auto p-4">
+    <Card className="bg-zinc-900 text-white border border-zinc-800">
+      <CardContent className="p-8 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <span className="decrypt-text">טוען...</span>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const ScavengerHuntStation = () => {
   const [password, setPassword] = useState('');
@@ -134,21 +150,7 @@ const ScavengerHuntStation = () => {
   };
 
   if (loading) {
-    return (
-      <div className="w-full max-w-md mx-auto p-4">
-        <Card className="bg-zinc-900 text-white border border-zinc-800">
-          <CardContent className="p-8 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative w-16 h-16">
-                <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-              <span className="decrypt-text">מאמת הרשאות...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <LoadingCard />;
   }
 
   return (
@@ -251,5 +253,9 @@ const ScavengerHuntStation = () => {
 };
 
 export default function Home() {
-  return <ScavengerHuntStation />;
+  return (
+    <Suspense fallback={<LoadingCard />}>
+      <ScavengerHuntStation />
+    </Suspense>
+  );
 }
