@@ -1,13 +1,12 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Camera } from 'lucide-react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/lib/supabase';
+import VideoPlayer from '@/components/VideoPlayer';
 
 interface RouteStep {
   team_code: string;
@@ -83,11 +82,9 @@ const GameInterface = () => {
           ) : (
             <div className="mt-4 space-y-4">
               <div className="aspect-video bg-zinc-800 rounded-lg overflow-hidden relative border border-zinc-700">
-                <Image 
-                  src={currentStep.next_video_url}
-                  alt="תדרוך משימה"
-                  fill
-                  className="object-cover"
+                <VideoPlayer 
+                  url={currentStep.next_video_url}
+                  className="w-full h-full"
                 />
               </div>
               <div className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 relative overflow-hidden">
