@@ -23,16 +23,20 @@ interface RouteVisualizerProps {
 
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   useEffect(() => {
+    // Initialize mermaid once
     mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: 'dark',
-      sequence: { useMaxWidth: false },
-      flowchart: { useMaxWidth: false },
+      flowchart: {
+        curve: 'basis',
+        defaultRenderer: 'dagre-wrapper'
+      },
       themeVariables: {
         nodeBorder: '#475569',
         mainBkg: '#2A303C',
         nodeTextColor: '#ffffff',
-      }
+      },
+      securityLevel: 'loose'
     });
 
     const renderDiagram = async () => {
@@ -46,48 +50,55 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
 
       let linkIndex = 0;
 
-      const diagram = `graph TD
-        %% Define nodes
-        ${Object.keys(stations).map(stationId => 
-          `${stationId}["${stations[stationId].name}"]`
-        ).join('\n')}
+      // Build diagram definition
+      let diagramDef = 'graph TD\n';
+      
+      // Add nodes first
+      Object.entries(stations).forEach(([id, station]: [string, Station]) => {
+        diagramDef += `  ${id}["${station.name}"]\n`;
+      });
 
-        %% Define routes with colors
-        ${Object.entries(stations).map(([stationId, station]) => 
-          Object.entries(station.routes).map(([, route]) => {
-            const color = colors[linkIndex++ % colors.length];
-            return `linkStyle ${linkIndex - 1} stroke:${color},color:${color}
-            ${stationId} -->|"${route.password}"| ${route.nextStation}`;
-          }).join('\n')
-        ).join('\n')}
-
-        %% Node styling
-        classDef default fill:#2A303C,stroke:#475569,color:#fff;
-      `;
-
-      console.log('Generated diagram:', diagram);
+      // Add connections and styles
+      Object.entries(stations).forEach(([stationId, station]: [string, Station]) => {
+        Object.entries(station.routes).forEach(([, route]: [string, StationRoute]) => {
+          const color = colors[linkIndex % colors.length];
+          diagramDef += `  ${stationId} -->|"${route.password}"| ${route.nextStation}\n`;
+          diagramDef += `  style ${stationId}${route.nextStation} stroke:${color},color:${color}\n`;
+          linkIndex++;
+        });
+      });
 
       try {
         const element = document.getElementById('mermaid-diagram');
         if (element) {
-          element.innerHTML = `<pre class="mermaid">${diagram}</pre>`;
+          // Clear previous content
+          element.innerHTML = '';
+          
+          // Create new diagram container
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.textContent = diagramDef;
+          element.appendChild(container);
+          
+          // Render the new diagram
           await mermaid.run();
         }
       } catch (error) {
-        console.error('Failed to render mermaid diagram:', error);
+        console.error('Mermaid rendering error:', error);
+        // Add fallback rendering or error message if needed
       }
     };
 
-    setTimeout(() => {
+    if (Object.keys(stations).length > 0) {
       renderDiagram();
-    }, 100);
+    }
   }, [stations]);
 
   return (
     <Card className="bg-zinc-900 text-white border border-zinc-800">
       <CardContent className="p-6">
         <div className="bg-zinc-800 p-4 rounded-lg overflow-x-auto">
-          <div id="mermaid-diagram" className="min-h-[200px] flex items-center justify-center" />
+          <div id="mermaid-diagram" className="min-h-[200px]" />
         </div>
       </CardContent>
     </Card>
