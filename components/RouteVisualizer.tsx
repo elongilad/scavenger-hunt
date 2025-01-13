@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useId } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import mermaid from 'mermaid';
 
@@ -22,8 +22,6 @@ interface RouteVisualizerProps {
 }
 
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
-  const uniqueId = useId().replace(/:/g, '');
-
   useEffect(() => {
     // Initialize mermaid at component mount
     mermaid.initialize({
