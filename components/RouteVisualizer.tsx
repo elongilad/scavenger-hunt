@@ -21,15 +21,6 @@ interface RouteVisualizerProps {
   stations: Record<string, Station>;
 }
 
-// Add type for team colors
-type TeamColors = {
-  teamA: string;
-  teamB: string;
-  teamC: string;
-  teamD: string;
-  teamE: string;
-};
-
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   useEffect(() => {
     mermaid.initialize({
@@ -45,51 +36,33 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
     });
 
     const renderDiagram = async () => {
-      // Define colors for different teams with proper typing
-      const teamColors: TeamColors = {
-        teamA: '#FF6B6B',  // Red
-        teamB: '#4ECDC4',  // Cyan
-        teamC: '#FFD93D',  // Yellow
-        teamD: '#95D44A',  // Green
-        teamE: '#A78BFA'   // Purple
-      };
+      const colors = [
+        '#FF6B6B',  // Red
+        '#4ECDC4',  // Cyan
+        '#FFD93D',  // Yellow
+        '#95D44A',  // Green
+        '#A78BFA'   // Purple
+      ];
 
-      const teamColorsList = Object.values(teamColors);
-      let teamColorIndex = 0;
-      const routeColors = new Map<string, string>();
-
-      // Assign colors to routes starting from each station
-      Object.keys(stations).forEach(stationId => {
-        const routes = stations[stationId].routes;
-        Object.keys(routes).forEach(fromStation => {
-          if (fromStation.startsWith('START') || fromStation.startsWith('GROUP')) {
-            const color = teamColorsList[teamColorIndex % teamColorsList.length];
-            routeColors.set(fromStation, color);
-            teamColorIndex++;
-          }
-        });
-      });
+      let linkIndex = 0;
 
       const diagram = `graph TD
         %% Define nodes
-        ${Object.entries(stations).map(([stationId, station]) => 
-          `${stationId}["${station.name}"]`
+        ${Object.keys(stations).map(stationId => 
+          `${stationId}["${stations[stationId].name}"]`
         ).join('\n')}
 
         %% Define routes with colors
         ${Object.entries(stations).map(([stationId, station]) => 
-          Object.entries(station.routes).map(([fromStation, route]) => {
-            const color = routeColors.get(fromStation) || '#666666';
-            return `${stationId} -->|"${route.password}"| ${route.nextStation}
-            style ${stationId}-${route.nextStation} stroke:${color},color:${color}`;
+          Object.entries(station.routes).map(([_, route]) => {
+            const color = colors[linkIndex++ % colors.length];
+            return `linkStyle ${linkIndex - 1} stroke:${color},color:${color}
+            ${stationId} -->|"${route.password}"| ${route.nextStation}`;
           }).join('\n')
         ).join('\n')}
 
         %% Node styling
         classDef default fill:#2A303C,stroke:#475569,color:#fff;
-        ${Object.keys(stations).map(stationId => 
-          `class ${stationId} default`
-        ).join('\n')}
       `;
 
       console.log('Generated diagram:', diagram);
