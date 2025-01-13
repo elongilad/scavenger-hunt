@@ -21,6 +21,15 @@ interface RouteVisualizerProps {
   stations: Record<string, Station>;
 }
 
+// Add type for team colors
+type TeamColors = {
+  teamA: string;
+  teamB: string;
+  teamC: string;
+  teamD: string;
+  teamE: string;
+};
+
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   useEffect(() => {
     mermaid.initialize({
@@ -36,8 +45,8 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
     });
 
     const renderDiagram = async () => {
-      // Define colors for different teams
-      const teamColors = {
+      // Define colors for different teams with proper typing
+      const teamColors: TeamColors = {
         teamA: '#FF6B6B',  // Red
         teamB: '#4ECDC4',  // Cyan
         teamC: '#FFD93D',  // Yellow
@@ -45,16 +54,17 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
         teamE: '#A78BFA'   // Purple
       };
 
+      const teamColorsList = Object.values(teamColors);
       let teamColorIndex = 0;
-      const routeColors = new Map();
+      const routeColors = new Map<string, string>();
 
       // Assign colors to routes starting from each station
       Object.keys(stations).forEach(stationId => {
         const routes = stations[stationId].routes;
         Object.keys(routes).forEach(fromStation => {
           if (fromStation.startsWith('START') || fromStation.startsWith('GROUP')) {
-            const colorKey = Object.keys(teamColors)[teamColorIndex % Object.keys(teamColors).length];
-            routeColors.set(fromStation, teamColors[colorKey]);
+            const color = teamColorsList[teamColorIndex % teamColorsList.length];
+            routeColors.set(fromStation, color);
             teamColorIndex++;
           }
         });
