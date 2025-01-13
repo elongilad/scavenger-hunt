@@ -10,17 +10,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/lib/supabase';
+import VideoPlayer from '@/components/VideoPlayer';
 
 interface StationRoute {
   nextStation: string;
   password: string;
   nextClue: string;
-  videoUrl: string;
+  
 }
 
 interface Station {
   id: string;
   name: string;
+  videoUrl: string;
   routes: Record<string, StationRoute>;
 }
 
@@ -228,11 +230,9 @@ const ScavengerHuntStation = () => {
           {showVideo && stationData && (
             <div className="mt-4 space-y-4">
               <div className="aspect-video bg-zinc-800 rounded-lg overflow-hidden relative border border-zinc-700">
-                <Image 
-                  src={stationData.videoUrl}
-                  alt="תדרוך משימה"
-                  fill
-                  className="object-cover"
+                <VideoPlayer 
+                  url={stationData.videoUrl}
+                  className="w-full h-full"
                 />
               </div>
               <div className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 relative overflow-hidden">
