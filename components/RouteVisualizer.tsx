@@ -23,7 +23,6 @@ interface RouteVisualizerProps {
 
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   useEffect(() => {
-    // Initialize mermaid once
     mermaid.initialize({
       startOnLoad: false,
       theme: 'dark',
@@ -45,7 +44,12 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
         '#4ECDC4',  // Cyan
         '#FFD93D',  // Yellow
         '#95D44A',  // Green
-        '#A78BFA'   // Purple
+        '#A78BFA',  // Purple
+        '#FF9F43',  // Orange
+        '#45AAF2',  // Blue
+        '#FC5C65',  // Pink
+        '#2BCB57',  // Lime
+        '#786FA6'   // Indigo
       ];
 
       let linkIndex = 0;
@@ -58,34 +62,31 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
         diagramDef += `  ${id}["${station.name}"]\n`;
       });
 
-      // Add connections and styles
+      // Add routes
       Object.entries(stations).forEach(([stationId, station]: [string, Station]) => {
         Object.entries(station.routes).forEach(([, route]: [string, StationRoute]) => {
           const color = colors[linkIndex % colors.length];
           diagramDef += `  ${stationId} -->|"${route.password}"| ${route.nextStation}\n`;
-          diagramDef += `  style ${stationId}${route.nextStation} stroke:${color},color:${color}\n`;
+          diagramDef += `  linkStyle ${linkIndex} stroke:${color},stroke-width:2px\n`;
           linkIndex++;
         });
       });
 
+      // Add styling
+      diagramDef += '\n  classDef default fill:#2A303C,stroke:#475569,color:#fff;\n';
+
       try {
         const element = document.getElementById('mermaid-diagram');
         if (element) {
-          // Clear previous content
           element.innerHTML = '';
-          
-          // Create new diagram container
           const container = document.createElement('div');
           container.className = 'mermaid';
           container.textContent = diagramDef;
           element.appendChild(container);
-          
-          // Render the new diagram
           await mermaid.run();
         }
       } catch (error) {
         console.error('Mermaid rendering error:', error);
-        // Add fallback rendering or error message if needed
       }
     };
 
