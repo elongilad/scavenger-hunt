@@ -62,14 +62,18 @@ const ScavengerHuntStation = () => {
 
         if (error) throw error;
 
+        console.log('Raw data from Supabase:', data); // Add this to debug
+
         const stationsRecord = (data || []).reduce((acc, station) => {
           acc[station.id] = {
             ...station,
-            videoUrl: station.video_url,
+            videoUrl: station.video_url || station.videoUrl, // Try both possibilities
             routes: station.routes || {}
           };
           return acc;
         }, {} as Record<string, Station>);
+
+        console.log('Processed stations:', stationsRecord); // Add this to debug
 
         setStations(stationsRecord);
         setLoading(false);

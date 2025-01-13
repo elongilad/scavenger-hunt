@@ -10,12 +10,28 @@ interface VideoPlayerProps {
 const VideoPlayer = ({ url, className = "" }: VideoPlayerProps) => {
   // Convert Google Drive sharing URL to embed URL
   const getVideoUrl = (url: string) => {
-    const fileId = url.match(/[-\w]{25,}/);
-    if (fileId) {
-      return `https://drive.google.com/file/d/${fileId[0]}/preview`;
+    if (!url) {
+      console.error('No URL provided to VideoPlayer');
+      return '';
     }
-    return url;
+    
+    try {
+      const fileId = url.match(/[-\w]{25,}/);
+      if (fileId) {
+        return `https://drive.google.com/file/d/${fileId[0]}/preview`;
+      }
+      return url;
+    } catch (error) {
+      console.error('Error processing video URL:', error);
+      return '';
+    }
   };
+
+  if (!url) {
+    return <div className={`${className} flex items-center justify-center bg-zinc-800`}>
+      No video URL provided
+    </div>;
+  }
 
   return (
     <div className={`aspect-video w-full ${className}`}>
