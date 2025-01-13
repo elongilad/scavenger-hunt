@@ -15,13 +15,14 @@ interface StationRoute {
   nextStation: string;
   password: string;
   nextClue: string;
+  videoUrl: string;
 }
 
 interface Station {
   id: string;
   name: string;
-  videoUrl: string;
   routes: Record<string, StationRoute>;
+  currentRoute?: StationRoute;
 }
 
 const LoadingCard = () => (
@@ -65,7 +66,6 @@ const ScavengerHuntStation = () => {
         const stationsRecord = (data || []).reduce((acc, station) => {
           acc[station.id] = {
             ...station,
-            videoUrl: station.video_url,
             routes: station.routes || {}
           };
           return acc;
@@ -140,7 +140,10 @@ const ScavengerHuntStation = () => {
 
     if (matchingRoute) {
       const nextStation = stations[matchingRoute.nextStation];
-      setStationData(nextStation);
+      setStationData({
+        ...nextStation,
+        currentRoute: matchingRoute
+      });
       setShowVideo(true);
       setError('');
     } else {
@@ -225,11 +228,11 @@ const ScavengerHuntStation = () => {
             </Alert>
           )}
 
-          {showVideo && stationData && (
+          {showVideo && stationData && stationData.currentRoute && (
             <div className="mt-4 space-y-4">
               <div className="aspect-video bg-zinc-800 rounded-lg overflow-hidden relative border border-zinc-700">
                 <Image 
-                  src={stationData.videoUrl}
+                  src={stationData.currentRoute.videoUrl}
                   alt="תדרוך משימה"
                   fill
                   className="object-cover"
@@ -239,7 +242,7 @@ const ScavengerHuntStation = () => {
                 <div className="relative z-10">
                   <h3 className="font-bold mb-2 text-blue-400 decrypt-text">עדכון משימה:</h3>
                   <p className="text-white decrypt-text">
-                    {Object.values(stationData.routes)[0]?.nextClue || "המשימה הושלמה!"}
+                    {stationData.currentRoute.nextClue}
                   </p>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent animate-pulse"></div>

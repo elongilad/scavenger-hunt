@@ -7,12 +7,12 @@ interface StationRoute {
   nextStation: string;
   password: string;
   nextClue: string;
+  videoUrl: string;
 }
 
 interface Station {
   id: string;
   name: string;
-  videoUrl: string;
   routes: Record<string, StationRoute>;
 }
 
@@ -23,7 +23,7 @@ interface RouteVisualizerProps {
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   const generateMermaidDiagram = () => {
     return Object.entries(stations).map(([stationId, station]) => 
-      Object.values(station.routes).map(route => 
+      Object.entries(station.routes).map(([fromStation, route]) => 
         `${stationId}[${station.name}] -->|${route.password}| ${route.nextStation}`
       ).join('\n')
     ).join('\n');
