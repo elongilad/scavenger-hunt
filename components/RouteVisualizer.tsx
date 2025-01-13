@@ -26,23 +26,25 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
 
   useEffect(() => {
     const renderDiagram = async () => {
-      console.log('Stations data:', stations);
-
       mermaid.initialize({
         startOnLoad: false,
         theme: 'dark',
         securityLevel: 'loose',
       });
 
+      // Create safe IDs by removing special characters
+      const getSafeId = (id: string) => id.replace(/[^a-zA-Z0-9]/g, '_');
+
       const diagram = `graph TD
         ${Object.entries(stations).map(([stationId, station]) => 
-          Object.values(station.routes).map(route => 
-            `${stationId}("${station.name}") -->|"${route.password}"| ${route.nextStation}`
-          ).join('\n')
+          Object.values(station.routes).map(route => {
+            const safeStationId = getSafeId(stationId);
+            const safeNextStation = getSafeId(route.nextStation);
+            return `${safeStationId}["${station.name}"] -->|"${route.password}"| ${safeNextStation}`;
+          }).join('\n')
         ).join('\n')}
-        
-        classDef default fill:#2A303C,stroke:#475569,color:#fff,rx:10,ry:10;
-        class ${Object.keys(stations).join(',')} default;
+        classDef default fill:#2A303C,stroke:#475569,color:#fff;
+        ${Object.keys(stations).map(stationId => `class ${getSafeId(stationId)} default;`).join('\n')}
       `;
 
       console.log('Generated diagram:', diagram);
@@ -56,6 +58,7 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
         }
       } catch (error) {
         console.error('Failed to render mermaid diagram:', error);
+        console.error('Diagram that failed:', diagram);
       }
     };
 
