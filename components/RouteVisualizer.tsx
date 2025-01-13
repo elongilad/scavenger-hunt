@@ -21,14 +21,14 @@ interface RouteVisualizerProps {
 }
 
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
-  const generateMermaidDiagram = () => {
-    return Object.entries(stations).map(([stationId, station]) => 
-      Object.entries(station.routes).map(([fromStation, route]) => 
-        `${stationId}[${station.name}] -->|${route.password}| ${route.nextStation}`
-      ).join('\n')
-    ).join('\n');
-  };
-
+    const generateMermaidDiagram = () => {
+        return Object.entries(stations).map(([stationId, station]) => 
+          Object.values(station.routes).map(route => 
+            `${stationId}[${station.name}] -->|${route.password}| ${route.nextStation}`
+          ).join('\n')
+        ).join('\n');
+      };
+      
   return (
     <Card>
       <CardContent className="p-6">
