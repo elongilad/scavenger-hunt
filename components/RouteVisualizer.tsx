@@ -25,50 +25,48 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   const uniqueId = useId().replace(/:/g, '');
 
   useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      securityLevel: 'loose',
-      flowchart: {
-        curve: 'basis',
-        defaultRenderer: 'dagre-wrapper'
-      }
-    });
+    const renderDiagram = async () => {
+      console.log('Stations data:', stations);
 
-    const diagram = `graph LR
-      ${Object.entries(stations).map(([stationId, station]) => 
-        Object.values(station.routes).map(route => 
-          `${stationId}[${station.name}] -->|${route.password}| ${route.nextStation}`
-        ).join('\n')
-      ).join('\n')}
-      
-      classDef default fill:#2A303C,stroke:#475569,color:#fff
-      classDef active fill:#1E40AF,stroke:#60A5FA,color:#fff
-    `;
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose',
+      });
 
-    try {
-      // Clear the previous diagram
-      const element = document.getElementById(uniqueId);
-      if (element) {
-        element.innerHTML = '';
-      }
-      
-      // Render new diagram
-      mermaid.render(uniqueId, diagram).then(({ svg }) => {
+      const diagram = `graph TD
+        ${Object.entries(stations).map(([stationId, station]) => 
+          Object.values(station.routes).map(route => 
+            `${stationId}("${station.name}") -->|"${route.password}"| ${route.nextStation}`
+          ).join('\n')
+        ).join('\n')}
+        
+        classDef default fill:#2A303C,stroke:#475569,color:#fff,rx:10,ry:10;
+        class ${Object.keys(stations).join(',')} default;
+      `;
+
+      console.log('Generated diagram:', diagram);
+
+      try {
+        const element = document.getElementById(uniqueId);
         if (element) {
+          element.innerHTML = '';
+          const { svg } = await mermaid.render(uniqueId, diagram);
           element.innerHTML = svg;
         }
-      });
-    } catch (error) {
-      console.error('Failed to render mermaid diagram:', error);
-    }
+      } catch (error) {
+        console.error('Failed to render mermaid diagram:', error);
+      }
+    };
+
+    renderDiagram();
   }, [stations, uniqueId]);
 
   return (
     <Card className="bg-zinc-900 text-white border border-zinc-800">
       <CardContent className="p-6">
-        <div className="bg-zinc-800 p-4 rounded-lg overflow-auto">
-          <div id={uniqueId} />
+        <div className="bg-zinc-800 p-4 rounded-lg overflow-x-auto">
+          <div id={uniqueId} className="min-h-[200px] flex items-center justify-center" />
         </div>
       </CardContent>
     </Card>
