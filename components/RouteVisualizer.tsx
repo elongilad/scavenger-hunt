@@ -54,7 +54,7 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
 
         %% Define routes with colors
         ${Object.entries(stations).map(([stationId, station]) => 
-          Object.entries(station.routes).map(([_, route]) => {
+          Object.entries(station.routes).map(([fromStation, route]) => {
             const color = colors[linkIndex++ % colors.length];
             return `linkStyle ${linkIndex - 1} stroke:${color},color:${color}
             ${stationId} -->|"${route.password}"| ${route.nextStation}`;
