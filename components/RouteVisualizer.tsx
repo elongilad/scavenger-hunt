@@ -23,7 +23,6 @@ interface RouteVisualizerProps {
 
 const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
   useEffect(() => {
-    // Initialize mermaid at component mount
     mermaid.initialize({
       startOnLoad: true,
       theme: 'dark',
@@ -33,23 +32,59 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
         nodeBorder: '#475569',
         mainBkg: '#2A303C',
         nodeTextColor: '#ffffff',
-        lineColor: '#475569',
       }
     });
 
     const renderDiagram = async () => {
+      // Define colors for different teams
+      const teamColors = {
+        teamA: '#FF6B6B',  // Red
+        teamB: '#4ECDC4',  // Cyan
+        teamC: '#FFD93D',  // Yellow
+        teamD: '#95D44A',  // Green
+        teamE: '#A78BFA'   // Purple
+      };
+
+      let teamColorIndex = 0;
+      const routeColors = new Map();
+
+      // Assign colors to routes starting from each station
+      Object.keys(stations).forEach(stationId => {
+        const routes = stations[stationId].routes;
+        Object.keys(routes).forEach(fromStation => {
+          if (fromStation.startsWith('START') || fromStation.startsWith('GROUP')) {
+            const colorKey = Object.keys(teamColors)[teamColorIndex % Object.keys(teamColors).length];
+            routeColors.set(fromStation, teamColors[colorKey]);
+            teamColorIndex++;
+          }
+        });
+      });
+
       const diagram = `graph TD
+        %% Define nodes
         ${Object.entries(stations).map(([stationId, station]) => 
-          Object.values(station.routes).map(route => 
-            `${stationId}["${station.name}"] -->|"${route.password}"| ${route.nextStation}`
-          ).join('\n')
+          `${stationId}["${station.name}"]`
+        ).join('\n')}
+
+        %% Define routes with colors
+        ${Object.entries(stations).map(([stationId, station]) => 
+          Object.entries(station.routes).map(([fromStation, route]) => {
+            const color = routeColors.get(fromStation) || '#666666';
+            return `${stationId} -->|"${route.password}"| ${route.nextStation}
+            style ${stationId}-${route.nextStation} stroke:${color},color:${color}`;
+          }).join('\n')
+        ).join('\n')}
+
+        %% Node styling
+        classDef default fill:#2A303C,stroke:#475569,color:#fff;
+        ${Object.keys(stations).map(stationId => 
+          `class ${stationId} default`
         ).join('\n')}
       `;
 
       console.log('Generated diagram:', diagram);
 
       try {
-        // Clear any existing content
         const element = document.getElementById('mermaid-diagram');
         if (element) {
           element.innerHTML = `<pre class="mermaid">${diagram}</pre>`;
@@ -60,7 +95,6 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
       }
     };
 
-    // Small delay to ensure DOM is ready
     setTimeout(() => {
       renderDiagram();
     }, 100);
