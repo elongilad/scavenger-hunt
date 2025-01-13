@@ -52,27 +52,42 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
         '#786FA6'   // Indigo
       ];
 
-      let linkIndex = 0;
+      // Map to store team colors
+      const teamColors = new Map<string, string>();
+      let colorIndex = 0;
 
-      // Build diagram definition
+      // Assign colors to teams based on starting points
+      Object.entries(stations).forEach(([, station]: [string, Station]) => {
+        Object.keys(station.routes).forEach(fromStation => {
+          if (fromStation.startsWith('START') || fromStation.startsWith('GROUP')) {
+            if (!teamColors.has(fromStation)) {
+              teamColors.set(fromStation, colors[colorIndex % colors.length]);
+              colorIndex++;
+            }
+          }
+        });
+      });
+
+      // Build diagram
       let diagramDef = 'graph TD\n';
       
-      // Add nodes first
+      // Add nodes
       Object.entries(stations).forEach(([id, station]: [string, Station]) => {
         diagramDef += `  ${id}["${station.name}"]\n`;
       });
 
-      // Add routes
+      // Add routes with team colors
+      let linkIndex = 0;
       Object.entries(stations).forEach(([stationId, station]: [string, Station]) => {
-        Object.entries(station.routes).forEach(([, route]: [string, StationRoute]) => {
-          const color = colors[linkIndex % colors.length];
+        Object.entries(station.routes).forEach(([fromStation, route]: [string, StationRoute]) => {
           diagramDef += `  ${stationId} -->|"${route.password}"| ${route.nextStation}\n`;
+          // Use team color if it's a team route, otherwise use a default color
+          const color = teamColors.get(fromStation) || '#666666';
           diagramDef += `  linkStyle ${linkIndex} stroke:${color},stroke-width:2px\n`;
           linkIndex++;
         });
       });
 
-      // Add styling
       diagramDef += '\n  classDef default fill:#2A303C,stroke:#475569,color:#fff;\n';
 
       try {
