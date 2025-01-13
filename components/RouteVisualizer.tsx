@@ -41,7 +41,7 @@ const RouteVisualizer = ({ stations }: RouteVisualizerProps) => {
       const diagram = `graph TD
         ${Object.entries(stations).map(([stationId, station]) => 
           Object.values(station.routes).map(route => 
-            `${stationId}["${station.name}"] -->"${route.password}"${route.nextStation}`
+            `${stationId}["${station.name}"] -->|"${route.password}"| ${route.nextStation}`
           ).join('\n')
         ).join('\n')}
       `;
