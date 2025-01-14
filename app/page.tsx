@@ -15,12 +15,12 @@ interface StationRoute {
   nextStation: string;
   password: string;
   nextClue: string;
+  videoUrl: string;
 }
 
 interface Station {
   id: string;
   name: string;
-  videoUrl: string;
   routes: Record<string, StationRoute>;
 }
 
@@ -46,6 +46,7 @@ const ScavengerHuntStation = () => {
   const [error, setError] = useState('');
   const [stationData, setStationData] = useState<Station | null>(null);
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
+  const [matchingRoute, setMatchingRoute] = useState<StationRoute | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [stations, setStations] = useState<Record<string, Station>>({});
   const [loading, setLoading] = useState(true);
@@ -62,18 +63,13 @@ const ScavengerHuntStation = () => {
 
         if (error) throw error;
 
-        console.log('Raw data from Supabase:', data); // Add this to debug
-
         const stationsRecord = (data || []).reduce((acc, station) => {
           acc[station.id] = {
             ...station,
-            videoUrl: station.video_url || station.videoUrl, // Try both possibilities
             routes: station.routes || {}
           };
           return acc;
         }, {} as Record<string, Station>);
-
-        console.log('Processed stations:', stationsRecord); // Add this to debug
 
         setStations(stationsRecord);
         setLoading(false);
@@ -138,12 +134,13 @@ const ScavengerHuntStation = () => {
       return;
     }
 
-    const matchingRoute = Object.values(currentStation.routes).find(
+    const foundRoute = Object.values(currentStation.routes).find(
       route => route.password.toUpperCase() === password.toUpperCase()
     );
 
-    if (matchingRoute) {
-      const nextStation = stations[matchingRoute.nextStation];
+    if (foundRoute) {
+      const nextStation = stations[foundRoute.nextStation];
+      setMatchingRoute(foundRoute);
       setStationData(nextStation);
       setShowVideo(true);
       setError('');
@@ -229,11 +226,11 @@ const ScavengerHuntStation = () => {
             </Alert>
           )}
 
-          {showVideo && stationData && (
+          {showVideo && stationData && matchingRoute && (
             <div className="mt-4 space-y-4">
               <div className="aspect-video bg-zinc-800 rounded-lg overflow-hidden relative border border-zinc-700">
                 <VideoPlayer 
-                  url={stationData.videoUrl}
+                  url={matchingRoute.videoUrl}
                   className="w-full h-full"
                 />
               </div>
@@ -241,7 +238,7 @@ const ScavengerHuntStation = () => {
                 <div className="relative z-10">
                   <h3 className="font-bold mb-2 text-blue-400 decrypt-text">עדכון משימה:</h3>
                   <p className="text-white decrypt-text">
-                    {Object.values(stationData.routes)[0]?.nextClue || "המשימה הושלמה!"}
+                    {matchingRoute.nextClue || "המשימה הושלמה!"}
                   </p>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent animate-pulse"></div>
